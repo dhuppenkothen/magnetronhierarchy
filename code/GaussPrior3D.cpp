@@ -26,13 +26,17 @@ void GaussPrior3D::fromPrior()
 	co_ADuration = -10. + 20.*randomU();
 	co_ASkew = -10. + 20.*randomU();
 	co_durationSkew = -10. + 20.*randomU();
+
+	sig_logA = 5.*randomU();
+	sig_logDuration = 5.*randomU();
+	sig_logSkew = 5.*randomU();
 }
 
 double GaussPrior3D::perturb_parameters()
 {
 	double logH = 0.;
 
-	int which = randInt(6);
+	int which = randInt(9);
 
 	if(which == 0)
 	{
@@ -68,7 +72,21 @@ double GaussPrior3D::perturb_parameters()
 		co_durationSkew += 20.*randh();
 		wrap(co_durationSkew, -10., 10.);
 	}
-
+	if(which == 6)
+	{
+		sig_logA += 5.*randh();
+		wrap(sig_logA, 0., 5.);
+	}
+	if(which == 7)
+	{
+		sig_logDuration += 5.*randh();
+		wrap(sig_logDuration, 0., 5.);
+	}
+	if(which == 8)
+	{
+		sig_logSkew += 5.*randh();
+		wrap(sig_logSkew, 0., 5.);
+	}
 
 	return logH;
 }
@@ -76,8 +94,8 @@ double GaussPrior3D::perturb_parameters()
 /*
 * vec[0] = spike time
 * vec[1] = log(amplitude)
-* vec[2] = log(rise time)
-* vec[3] = log(s') where (old skew) = s' - 1
+* vec[2] = log(duration)
+* vec[3] = log(skew)
 */
 
 double GaussPrior3D::log_pdf(const std::vector<double>& vec) const
