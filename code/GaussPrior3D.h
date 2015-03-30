@@ -8,17 +8,17 @@ class GaussPrior3D:public Distribution
 {
 	private:
 		// Data limits
-		double t_min, t_max;
+		double t_min, t_max, t_range;
 
 		// The means
-		double mean_logA, mean_logTau, mean_logSkew;
+		double mean_logA, mean_logDuration, mean_logSkew;
 
 		// The coefficients
-		double co_ATau, co_ASkew, co_tauSkew;
+		double co_ADuration, co_ASkew, co_durationSkew;
 
 		// The standard deviations
 		// (conditional! for the latter two anyway)
-		double sig_logA, sig_logTau, sig_logSkew;
+		double sig_logA, sig_logDuration, sig_logSkew;
 
 		double perturb_parameters();
 
