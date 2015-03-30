@@ -50,7 +50,12 @@ double GaussPrior3D::log_pdf(const std::vector<double>& vec) const
 {
 	double logP = 0.;
 
+	if(vec[0] < t_min || vec[0] > t_max)
+		return -1E250;
+
 	logP += -log(sig_logA) - 0.5*pow((vec[1] - mean_logA)/sig_logA, 2);
+	logP += -log(sig_logTau) - 0.5*pow((vec[2] - mean_logTau - co_ATau*vec[1])/sig_logTau, 2);
+	logP += -log(sig_logSkew) - 0.5*pow((vec[3] - mean_logSkew - co_ASkew*vec[1] - co_tauSkew*vec[2])/sig_logSkew, 2);
 
 	return 0.;
 }
