@@ -23,13 +23,16 @@ void GaussPrior3D::fromPrior()
 	mean_logDuration = log(1E-3*t_range) + log(1E3)*randomU();
 	mean_logSkew = -5. + 10.*randomU();
 
+	co_ADuration = -10. + 20.*randomU();
+	co_ASkew = -10. + 20.*randomU();
+	co_durationSkew = -10. + 20.*randomU();
 }
 
 double GaussPrior3D::perturb_parameters()
 {
 	double logH = 0.;
 
-	int which = randInt(3);
+	int which = randInt(6);
 
 	if(which == 0)
 	{
@@ -50,6 +53,22 @@ double GaussPrior3D::perturb_parameters()
 		mean_logSkew += 10.*randh();
 		wrap(mean_logSkew, -5., 5.);
 	}
+	if(which == 3)
+	{
+		co_ADuration += 20.*randh();
+		wrap(co_ADuration, -10., 10.);
+	}
+	if(which == 4)
+	{
+		co_ASkew += 20.*randh();
+		wrap(co_ASkew, -10., 10.);
+	}
+	if(which == 5)
+	{
+		co_durationSkew += 20.*randh();
+		wrap(co_durationSkew, -10., 10.);
+	}
+
 
 	return logH;
 }
