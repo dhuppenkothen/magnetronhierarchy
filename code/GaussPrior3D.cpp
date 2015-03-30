@@ -48,6 +48,10 @@ double GaussPrior3D::perturb_parameters()
 
 double GaussPrior3D::log_pdf(const std::vector<double>& vec) const
 {
+	double logP = 0.;
+
+	logP += -log(sig_logA) - 0.5*pow((vec[1] - mean_logA)/sig_logA, 2);
+
 	return 0.;
 }
 
@@ -55,6 +59,10 @@ void GaussPrior3D::from_uniform(std::vector<double>& vec) const
 {
 	vec[0] = t_min + (t_max - t_min)*vec[0];
 	vec[1] = mean_logA + sig_logA*gsl_cdf_ugaussian_Pinv(vec[1]);
+	vec[2] = mean_logTau + co_ATau*vec[1]
+			+ sig_logTau*gsl_cdf_ugaussian_Pinv(vec[2]);
+	vec[3] = mean_logSkew + co_ASkew*vec[1] + co_tauSkew*vec[2]
+			+ sig_logSkew*gsl_cdf_ugaussian_Pinv(vec[3]);
 }
 
 void GaussPrior3D::to_uniform(std::vector<double>& vec) const
