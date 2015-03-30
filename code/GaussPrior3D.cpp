@@ -67,8 +67,10 @@ void GaussPrior3D::from_uniform(std::vector<double>& vec) const
 
 void GaussPrior3D::to_uniform(std::vector<double>& vec) const
 {
-	vec[0] = (vec[0] - t_min)/(t_max - t_min);
+	vec[3] = gsl_cdf_ugaussian_P((vec[3] - mean_logSkew - co_ASkew*vec[1] - co_tauSkew*vec[2])/sig_logSkew);
+	vec[2] = gsl_cdf_ugaussian_P((vec[2] - mean_logTau - co_ATau*vec[1])/sig_logTau);
 	vec[1] = gsl_cdf_ugaussian_P((vec[1] - mean_logA)/sig_logA);
+	vec[0] = (vec[0] - t_min)/(t_max - t_min);
 }
 
 void GaussPrior3D::print(std::ostream& out) const
