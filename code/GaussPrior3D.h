@@ -7,6 +7,9 @@
 class GaussPrior3D:public Distribution
 {
 	private:
+		// Data limits
+		double t_min, t_max;
+
 		// The means
 		double mean_logA, mean_logTau, mean_logSkew;
 
@@ -20,7 +23,7 @@ class GaussPrior3D:public Distribution
 		double perturb_parameters();
 
 	public:
-		GaussPrior3D(double x_min, double x_max);
+		GaussPrior3D(double t_min, double t_max);
 
 		void fromPrior();
 

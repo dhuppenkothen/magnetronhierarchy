@@ -3,25 +3,21 @@
 #include "Utils.h"
 #include "Data.h"
 #include <cmath>
+#include <gsl/gsl_cdf.h>
 
 using namespace DNest3;
 
-GaussPrior3D::GaussPrior3D(double x_min, double x_max)
-:x_min(x_min)
-,x_max(x_max)
-,min_width(0.)
+GaussPrior3D::GaussPrior3D(double t_min, double t_max)
+:t_min(t_min)
+,t_max(t_max)
 {
 
 }
 
 void GaussPrior3D::fromPrior()
 {
-	mu = tan(M_PI*(0.97*randomU() - 0.485));
-	mu = exp(mu);
-	mu_widths = exp(log(1E-3*(x_max - x_min)) + log(1E3)*randomU());
-
-	a = -10. + 20.*randomU();
-	b = 2.*randomU();
+	mean_logA = tan(M_PI*(0.97*randomU() - 0.485));
+	mean_logA = exp(mean_logA);
 }
 
 double GaussPrior3D::perturb_parameters()
@@ -32,62 +28,43 @@ double GaussPrior3D::perturb_parameters()
 
 	if(which == 0)
 	{
-		mu = log(mu);
-		mu = (atan(mu)/M_PI + 0.485)/0.97;
-		mu += pow(10., 1.5 - 6.*randomU())*randn();
-		mu = mod(mu, 1.);
-		mu = tan(M_PI*(0.97*mu - 0.485));
-		mu = exp(mu);
-	}
-	if(which == 1)
-	{
-		mu_widths = log(mu_widths/(x_max - x_min));
-		mu_widths += log(1E3)*pow(10., 1.5 - 6.*randomU())*randn();
-		mu_widths = mod(mu_widths - log(1E-3), log(1E3)) + log(1E-3);
-		mu_widths = (x_max - x_min)*exp(mu_widths);
-	}
-	if(which == 2)
-	{
-		a += 20.*randh();
-		a = mod(a + 10., 20.) - 10.;
-	}
-	if(which == 3)
-	{
-		b += 2.*randh();
-		b = mod(b, 2.);
+		mean_logA = log(mean_logA);
+		mean_logA = (atan(mean_logA)/M_PI + 0.485)/0.97;
+		mean_logA += pow(10., 1.5 - 6.*randomU())*randn();
+		mean_logA = mod(mean_logA, 1.);
+		mean_logA = tan(M_PI*(0.97*mean_logA - 0.485));
+		mean_logA = exp(mean_logA);
 	}
 
 	return logH;
 }
 
+/*
+* vec[0] = spike time
+* vec[1] = log(amplitude)
+* vec[2] = log(rise time)
+* vec[3] = log(s') where (old skew) = s' - 1
+*/
+
 double GaussPrior3D::log_pdf(const std::vector<double>& vec) const
 {
-	if(vec[0] < x_min || vec[0] > x_max || vec[1] < 0.0 || vec[2] < min_width
-		|| log(vec[3]) < (a-b) || log(vec[3]) > (a + b))
-		return -1E300;
-
-	return -log(mu) - vec[1]/mu - log(mu_widths)
-			- (vec[2] - min_width)/mu_widths - log(2.*b*vec[3]);
+	return 0.;
 }
 
 void GaussPrior3D::from_uniform(std::vector<double>& vec) const
 {
-	vec[0] = x_min + (x_max - x_min)*vec[0];
-	vec[1] = -mu*log(1. - vec[1]);
-	vec[2] = min_width - mu_widths*log(1. - vec[2]);
-	vec[3] = exp(a - b + 2.*b*vec[3]);
+	vec[0] = t_min + (t_max - t_min)*vec[0];
+	vec[1] = mean_logA + sig_logA*gsl_cdf_ugaussian_Pinv(vec[1]);
 }
 
 void GaussPrior3D::to_uniform(std::vector<double>& vec) const
 {
-	vec[0] = (vec[0] - x_min)/(x_max - x_min);
-	vec[1] = 1. - exp(-vec[1]/mu);
-	vec[2] = 1. - exp(-(vec[2] - min_width)/mu_widths);
-	vec[3] = (log(vec[3]) + b - a)/(2.*b);
+	vec[0] = (vec[0] - t_min)/(t_max - t_min);
+	vec[1] = gsl_cdf_ugaussian_P((vec[1] - mean_logA)/sig_logA);
 }
 
 void GaussPrior3D::print(std::ostream& out) const
 {
-	out<<mu<<' '<<mu_widths<<' '<<a<<' '<<b<<' ';
+	out<<" ";
 }
 
