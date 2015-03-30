@@ -17,18 +17,19 @@ GaussPrior3D::GaussPrior3D(double t_min, double t_max)
 
 void GaussPrior3D::fromPrior()
 {
+	// The three means
 	mean_logA = tan(M_PI*(0.97*randomU() - 0.485));
 	mean_logA = exp(mean_logA);
-
 	mean_logDuration = log(1E-3*t_range) + log(1E3)*randomU();
-//	mean_logSkew = 
+	mean_logSkew = -5. + 10.*randomU();
+
 }
 
 double GaussPrior3D::perturb_parameters()
 {
 	double logH = 0.;
 
-	int which = randInt(4);
+	int which = randInt(3);
 
 	if(which == 0)
 	{
@@ -38,6 +39,16 @@ double GaussPrior3D::perturb_parameters()
 		mean_logA = mod(mean_logA, 1.);
 		mean_logA = tan(M_PI*(0.97*mean_logA - 0.485));
 		mean_logA = exp(mean_logA);
+	}
+	if(which == 1)
+	{
+		mean_logDuration += log(1E3)*randh();
+		wrap(mean_logDuration, log(1E-3*t_range), log(t_range));
+	}
+	if(which == 2)
+	{
+		mean_logSkew += 10.*randh();
+		wrap(mean_logSkew, -5., 5.);
 	}
 
 	return logH;
