@@ -1,21 +1,21 @@
 #ifndef _GaussPrior3D_
 #define _GaussPrior3D_
 
+#include <vector>
 #include "Distributions/Distribution.h"
 
 class GaussPrior3D:public Distribution
 {
 	private:
-		// Limits
-		double x_min, x_max;
-		double mu_min, mu_max;
-		double min_width;
+		// The means
+		double mean_logA, mean_logTau, mean_logSkew;
 
-		// Mean of amplitudes and widths
-		double mu, mu_widths;
+		// The coefficients
+		double co_ATau, co_ASkew, co_tauSkew;
 
-		// Uniform for log-skews
-		double a, b; // Midpoint and half-width
+		// The standard deviations
+		// (conditional! for the latter two anyway)
+		double sig_logA, sig_logTau, sig_logSkew;
 
 		double perturb_parameters();
 
