@@ -1,6 +1,6 @@
 from pylab import *
 
-data = np.loadtxt('/scratch/daniela/data/sgr1550/dnest/unbinned/090122283_+096.17100_eventfile.dat')
+data = np.loadtxt('090122283_+096.17100_eventfile.dat')
 posterior_sample = atleast_2d(loadtxt('posterior_sample.txt'))
 
 ion()
