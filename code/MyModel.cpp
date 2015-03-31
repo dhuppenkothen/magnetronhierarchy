@@ -55,17 +55,18 @@ void MyModel::calculate_mu()
 
 	double amplitude, duration, skew;
 	double rise, fall, scale;
-	for(size_t i=0; i<mu.size(); i++)
+
+	for(size_t j=0; j<components.size(); j++)
 	{
-		for(size_t j=0; j<components.size(); j++)
+		amplitude = exp(components[j][1]);
+		duration = exp(components[j][2]);
+		skew = exp(components[j][3]);
+
+		rise = duration/(1. + skew);
+		fall = rise*skew;
+
+		for(size_t i=0; i<mu.size(); i++)
 		{
-			amplitude = exp(components[j][1]);
-			duration = exp(components[j][2]);
-			skew = exp(components[j][3]);
-
-			rise = duration/(1. + skew);
-			fall = rise*skew;
-
 			scale = (t[i] > components[j][0])?(fall):(rise);
 
 			mu[i] += amplitude
