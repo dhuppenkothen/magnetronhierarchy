@@ -1,0 +1,184 @@
+\documentclass[a4paper]{artikel3}
+
+\addtolength{\topmargin}{-.5in}
+\addtolength{\oddsidemargin}{-.3in}
+\addtolength{\evensidemargin}{-.3in}
+\addtolength{\textwidth}{0.6in}
+\addtolength{\textheight}{1in}
+
+\usepackage[round]{natbib}
+\usepackage{amsmath,amssymb,amsbsy,bbm}
+\usepackage{graphicx,subfloat,booktabs,url,color}
+\usepackage[sc]{mathpazo}
+\linespread{1.05}
+\usepackage{microtype}
+
+\newcommand{\g}{\,|\,} % ``given''
+\newcommand{\te}{\!=\!} % thin equals
+\newcommand{\tp}{\!+\!} % thin plus
+\newcommand{\tm}{\!-\!} % ...
+\newcommand{\ttimes}{\!\times\!} % ...
+\newcommand{\bx}{{\bf x}}
+\newcommand{\bm}{{\bf m}}
+\newcommand{\by}{{\bf y}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\sth}{^{(s)}}
+%\newcommand{\data}{\{\by_m\}}
+\newcommand{\data}{Y}
+
+\title{Hierarchical Magnetar modeling across bursts}
+\author{--- working notes}
+\date{April 2015}
+
+\begin{document}
+
+\maketitle
+
+\subsection*{A hierarchical prior covering energy-duration relationships}
+
+Following from our previous work, our simple word model of a spike is defined by
+a rise time $\tau$, Amplitude $A$, and skew $s$ such that the fall time is
+$\tau s$.
+
+The duration of a spike is the rise time plus the fall time: $D = \tau (1\tp s)$.
+
+The average energy of a spike (assuming energy of photons is unrelated to spike
+shape or scale) is proportional to the area under the curve: $E = AD = A\tau(1\tp s)$.
+
+We place a multivariate Gaussian prior on the word properties, parameterized in
+the following way:
+\[
+    \theta_n = [\log A_n,\, \log D_n,\, \log s_n]^\top,
+    \quad p(\theta_n\g \alpha) = \N(\theta_n;\, \bm_\alpha, \Sigma_\alpha).
+\]
+Here, hyperparameters $\alpha$ set the common distribution shared by all words
+across all bursts. (Future models may allow a different $\alpha_m$ for each
+burst, but learn a shared prior over what they are.)
+
+If each element of $\theta$ is independent of the others, then the log energy
+will be the log duration plus `noise' (an independent log-amplitude for each
+burst). Energy will scale with duration, but with multiplicative noise.
+
+Dependencies in $\theta$ can lead to other energy-duration relationships. For
+example, if log-amplitude is equal to log-duration plus noise, then then the log
+energy will be twice the log duration plus noise. Energy will then scale with
+duration squared, again with multiplicative noise.
+
+Here $\alpha$ has 9 degrees of freedom. We hope that the posterior will be
+fairly insensitive to the choice of prior over $\alpha$. Our computations will
+use a broad prior, chosen for computational convenience, which we will reweight
+to obtain posteriors for different possible choices of prior as necessary.
+
+In our implementation we set $\alpha$ to contain the mean $m_\alpha$ and the
+elements of Cholesky decomposition of $\Sigma_\alpha$ after taking the log of
+the diagonal elements. Taking the log of the diagonal makes the alphas both
+unconstrained and have a bijection with the parameters of the Gaussian prior
+$(m_\alpha,\Sigma_\alpha)$. We could also have used the Cholesky decomposition
+of the inverse covariance matrix.
+
+\subsection*{Joint Monte Carlo Inference}
+
+The hyperparameters $\alpha$ can be seen as just parameters of the model, like
+the parameters $\{\theta_n\}$. A standard Monte Carlo inference scheme could be
+used to same $S$ joint plausible explanations,
+$\{(\alpha^{(s)}, \{\theta_n^{(s)}\}_{n=1}^N)\}_{s=1}^S$, of the $N$ bursts.
+Where each explanation $(\alpha^{(s)}, \{\theta_n^{(s)}\}_{n=1}^N)$ is a sample
+from the joint posterior.
+
+We could also consider optimizing the hyperparameters \citep[e.g., Monte Carlo
+EM][]{quintana1999}, or optimizing a variational approximation to the posterior
+\citep[e.g., adapting][]{hoffman2013}.
+
+Previously, when analyzing bursts independently, we ran each inference as a
+separate process, which is `embarrassingly parallel'. We present what is perhaps
+the simplest modification to this approach to obtain a posterior over shared
+hyperparameters, while continuing to analyse each burst separately, or at least
+nearly so.
+
+\subsection*{A Bayesian Committee Machine for Embarrassingly Parallel Monte Carlo}
+
+Here we consider processing each burst $\by_m$ separately. We imagine given each
+burst to a separate agent, who infers the hyperparameters given just the small
+part of the data that they have access to. The `committee' of these agents, then
+combines the results of their inferences to find what we should believe about
+the data given all the data $\data=\{\by_m\}$.
+\begin{align}
+    p(\alpha\g \data) &\,\propto\, p(\alpha)\prod_{m=1}^M p(\by_m\g \alpha) \\
+    &\,\propto\, p(\alpha)\prod_{m=1}^M \frac{p_m(\alpha\g \by_m)}{p_m(\alpha)}, \label{eqn:combine}
+\end{align}
+where $p_m$ gives the personal distribution of an agent using prior
+$p_m(\alpha)$ to infer hyperparameters given burst $\by_m$.
+
+\textbf{Density estimation:} Each agent needs to represent their personal
+beliefs $p_m(\alpha\g \by_m)$. If they report a mixture of delta functions,
+centred on Monte Carlo samples, then the product in \eqref{eqn:combine} will
+evaluate to zero for all $\alpha$. Instead, each agent must return a smooth
+probability density. They could report a multivariate Gaussian, an
+easy-to-implement approximation that gives a multivariate Gaussian posterior.
+
+If each agent has a Gaussian prior, and approximate Gaussian posterior:
+\begin{equation}
+    p_m(\alpha) = \N(\alpha;\, \bm_m, S_m),
+    \qquad p_m(\alpha\g \by_m) \approx \N(\alpha;\, \mu_m, \Sigma_m),
+\end{equation}
+then our approximate global posterior becomes
+\begin{align}
+    p(\alpha\g \data) &\,\propto\, p(\alpha)\prod_{m=1}^M \frac{\N(\alpha;\, \mu_m, \Sigma_m)}{\N(\alpha;\, \bm_m, S_m)},\\
+                      &\,\propto\, p(\alpha)\,\N(\alpha;\, \mu, \Sigma).
+\end{align}
+where the global mean and variance are:
+\begin{align}
+    \Sigma &\,=\, \left[ \sum_{m=1}^M (\Sigma_m^{-1} - S_m^{-1}) \right]^{-1} \\
+    \mu &\,=\, \Sigma^{-1} \sum_{m=1}^M (\Sigma_m^{-1}\mu_m - S_m^{-1}\bm_m) .
+\end{align}
+It is possible in cases where the Gaussian approximations are poor, especially
+if the prior variances are narrow, that the resulting $\Sigma$ isn't positive
+definite. In these cases, the agent priors should be set better, and/or more
+samples gathered to estimate the agent posteriors.
+
+Given sufficient Monte Carlo samples, and a flexible enough density estimator,
+the approximate posterior will tend towards the correct posterior given the
+whole dataset. More flexible density estimators include kernel smoothing,
+mixtures of Gaussians, or RNADE \citep{uria2013}. However, further MCMC may then
+be required to represent the resulting global posterior $p(\alpha\g\data)$.
+
+\textbf{Possible further approximation:} If there were some further
+hyperparameters $\beta$, shared by all the bursts, then the posterior over the
+original hyperparameters becomes:
+\begin{align}
+    p(\alpha\g \data) &\,=\, \int p(\alpha, \beta\g Y) \;\mathrm{d}\beta \\
+    &\,\neq\, \frac{1}{Z}p(\alpha)\prod_{m=1}^M \frac{\int p_m(\alpha,\beta\g \by_m)\;\mathrm{d}{\beta}}{p_m(\alpha)}. \label{eqn:bcm_wrong}
+\end{align}
+The second line is not the correct posterior over hyperparameters $\alpha$. If
+each agent integrates separately over $\beta$, we do not get the correct
+Bayesian inference for a model where they share the same $\beta$. However,
+performing inference in this way exists in the literature as an approximation
+\citep{tresp2000}. The correct thing to do would be to summarize each agent's
+joint beliefs about $(\alpha,\beta)$, and combine. Although that could be
+difficult if $\beta$ where high-dimensional.
+
+\textbf{Minibatches:} The data needn't be split into bursts. As indicated in the
+previous section, we could perform traditional `batch' processing, where a
+single process samples from the posterior given all the data. We choose to split
+up the data for computational reasons: to avoid the need for communication
+between processes while doing inference. However, we may not need to split up
+the data so aggressively. We might have $M$ `minibatches' of data $\by_m$, each
+of which contains several bursts.
+
+\textbf{Related work:} There is a lot of related work on combining results from
+separate inferences, which remains an active research area. For examples the
+Bayesian Committee Machine \citep{tresp2000} contains the above ideas, and
+suggests making Gaussian approximations, and the approximation of
+Equation~\eqref{eqn:bcm_wrong}. More recently, these ideas have been discussed
+explicitly as a way to construct `embarrassingly parallel' Monte Carlo methods
+\citep{neiswanger2014}. \citet{wang2014} provide more review and discussion of
+these methods, and suggests an alternative view of kernel smoothing to avoid
+explicit density estimation. Their method doesn't appear to immediately apply to
+the situation here however, where we are simultaneously sampling from joint
+posteriors with many nuisance variables $\{\theta_{n,m}\}$.
+
+
+\bibliographystyle{abbrvnat} % unsrtnat / abbrvnat
+\bibliography{bibs}
+
+\end{document}
