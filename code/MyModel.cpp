@@ -79,10 +79,9 @@ void MyModel::calculate_mu()
 
 void MyModel::fromPrior()
 {
-//	background = exp(log(1E-3) + log(1E3)*randomU())*data.get_y_mean();
-    background = tan(M_PI*(0.97*randomU() - 0.485));
-    background = exp(background);
-    bursts.fromPrior();
+	background = tan(M_PI*(0.97*randomU() - 0.485));
+	background = exp(background);
+	bursts.fromPrior();
 	calculate_mu();
 }
 
@@ -108,7 +107,7 @@ double MyModel::perturb()
 	else
 	{
 		logH += bursts.perturb();
-		bursts.consolidate_diff();
+//		bursts.consolidate_diff();
 		calculate_mu();
 	}
 
@@ -118,41 +117,11 @@ double MyModel::perturb()
 double MyModel::logLikelihood() const
 {
         const vector<double>& t = data.get_t();
+	const vector<double>& y = data.get_y();
 
-	double t_start = data.get_t_min();
-	double t_end = data.get_t_max();
-
-	double time;
-	double amp;
-	double duration;
-	double rise;
-	double skew;
-	double y0, y1;
-	double mu_int = 0.;
-
-	for(size_t j=0; j<bursts.get_components().size(); j++)
-	{
-		time = bursts.get_components()[j][0];
-		amp = exp(bursts.get_components()[j][1]);
-		duration = exp(bursts.get_components()[j][2]);
-		skew = exp(bursts.get_components()[j][3]);
-
-		rise = duration/(1. + skew);
-
-		y0 = 1.0 - exp((t_start - time)/rise);
-		y1 = skew - skew*exp(-(t_end - time)/(rise*skew));
-		mu_int += amp*rise*(y0 + y1);
-	}
-	mu_int += background*(t_end - t_start);
- 
-	//const vector<int>& t = data.get_t();
-
-	//double logl = 0.;
-	//for(size_t i=0; i<t.size(); i++)
-	//	logl += -mu[i] + y[i]*log(mu[i]) - gsl_sf_lngamma(y[i] + 1.);
-        double logl = -mu_int;
-        for(size_t i=0; i<t.size(); i++)
-                logl += log(mu[i]);
+	double logl = 0.;
+	for(size_t i=0; i<t.size(); i++)
+		logl += -mu[i] + y[i]*log(mu[i]) - gsl_sf_lngamma(y[i] + 1.);
  
 	return logl;
 }

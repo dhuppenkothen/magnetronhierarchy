@@ -22,10 +22,14 @@ void Data::load(const char* filename)
 	}
 
 	t.clear();
+	y.clear();
 
 	double temp1, temp2;
 	while(fin>>temp1 && fin>>temp2)
+	{
 		t.push_back(temp1);
+		y.push_back(temp2);
+	}
 
 	fin.close();
 	cout<<"# Found "<<t.size()<<" points in file "<<filename<<"."<<endl;

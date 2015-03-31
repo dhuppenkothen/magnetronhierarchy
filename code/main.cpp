@@ -27,7 +27,7 @@ using namespace DNest3;
 
 int main(int argc, char** argv)
 {
-	Data::get_instance().load("090122283_+096.17100_eventfile.dat");
+	Data::get_instance().load("090122283_+096.17100_data.txt");
 	MTSampler<MyModel> sampler = setup_mt<MyModel>(argc, argv);
 	sampler.run();
 	return 0;

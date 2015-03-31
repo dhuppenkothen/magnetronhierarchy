@@ -6,7 +6,7 @@
 class Data
 {
 	private:
-		std::vector<double> t;
+		std::vector<double> t, y;
 
 		// Some useful summaries
 		double t_min, t_max, t_range, dt;
@@ -19,6 +19,7 @@ class Data
 
 		// Getters
 		const std::vector<double>& get_t() const { return t; }
+		const std::vector<double>& get_y() const { return y; }
 		double get_t_min() const { return t_min; }
 		double get_t_max() const { return t_max; }
 		double get_t_range() const { return t_range; }
