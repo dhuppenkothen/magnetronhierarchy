@@ -43,7 +43,8 @@ void MyModel::calculate_mu()
 	const vector<double>& t = data.get_t();
 
 	// Update or from scratch?
-	bool update = (bursts.get_added().size() < bursts.get_components().size());
+	// NEVER UPDATE BECAUSE COMPONENT IS A LOG-AMPLITUDE, NOT AN AMPLITUDE!
+	bool update = false;
 
 	// Get the components
 	const vector< vector<double> >& components = (update)?(bursts.get_added()):
