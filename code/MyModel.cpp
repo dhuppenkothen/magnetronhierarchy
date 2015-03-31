@@ -32,7 +32,7 @@ const Data& MyModel::data = Data::get_instance();
 MyModel::MyModel()
 //:bursts(4, 100, false, ClassicMassInf1D(data.get_t_min(), data.get_t_max(),
 //				1E-3*data.get_y_mean(), 1E3*data.get_y_mean()))
-:bursts(4, 100, false, ClassicMassInf1D(data.get_t_min(), data.get_t_max()))
+:bursts(4, 100, false, GaussPrior3D(data.get_t_min(), data.get_t_max()))
 ,mu(data.get_t().size())
 {
 
@@ -43,7 +43,8 @@ void MyModel::calculate_mu()
 	const vector<double>& t = data.get_t();
 
 	// Update or from scratch?
-	bool update = (bursts.get_added().size() < bursts.get_components().size());
+	// NEVER UPDATE BECAUSE COMPONENT IS A LOG-AMPLITUDE, NOT AN AMPLITUDE!
+	bool update = false;
 
 	// Get the components
 	const vector< vector<double> >& components = (update)?(bursts.get_added()):
@@ -53,18 +54,25 @@ void MyModel::calculate_mu()
 	if(!update)
 		mu.assign(mu.size(), background);
 
-	double scale;
-	for(size_t i=0; i<mu.size(); i++)
-	{
-		for(size_t j=0; j<components.size(); j++)
-		{
-			scale = components[j][2];
-			if(t[i] > components[j][0])
-				scale *= components[j][3];
+	double amplitude, duration, skew;
+	double rise, fall, scale, exparg;
 
-			mu[i] += components[j][1]
-					*exp(-fabs(t[i] - components[j][0])/
-						scale);
+	for(size_t j=0; j<components.size(); j++)
+	{
+		amplitude = exp(components[j][1]);
+		duration = exp(components[j][2]);
+		skew = exp(components[j][3]);
+
+		rise = duration/(1. + skew);
+		fall = rise*skew;
+
+		for(size_t i=0; i<mu.size(); i++)
+		{
+			scale = (t[i] > components[j][0])?(fall):(rise);
+
+			exparg = -fabs(t[i] - components[j][0])/scale;
+			if(exparg > -10.)
+				mu[i] += amplitude*exp(exparg);
 		}
 	}
 }
@@ -116,7 +124,8 @@ double MyModel::logLikelihood() const
 
 	double time;
 	double amp;
-	double scale;
+	double duration;
+	double rise;
 	double skew;
 	double y0, y1;
 	double mu_int = 0.;
@@ -124,13 +133,15 @@ double MyModel::logLikelihood() const
 	for(size_t j=0; j<bursts.get_components().size(); j++)
 	{
 		time = bursts.get_components()[j][0];
-		amp = bursts.get_components()[j][1];
-		scale = bursts.get_components()[j][2];
-		skew = bursts.get_components()[j][3];
+		amp = exp(bursts.get_components()[j][1]);
+		duration = exp(bursts.get_components()[j][2]);
+		skew = exp(bursts.get_components()[j][3]);
 
-		y0 = 1.0 - exp((t_start - time)/scale);
-		y1 = skew - skew*exp(-(t_end - time)/(scale*skew));
-		mu_int += amp*scale*(y0 + y1);
+		rise = duration/(1. + skew);
+
+		y0 = 1.0 - exp((t_start - time)/rise);
+		y1 = skew - skew*exp(-(t_end - time)/(rise*skew));
+		mu_int += amp*rise*(y0 + y1);
 	}
 	mu_int += background*(t_end - t_start);
  
