@@ -15,7 +15,7 @@ for i in xrange(0, posterior_sample.shape[0]):
 ioff()
 show()
 
-hist(posterior_sample[:,12], 20)
+hist(posterior_sample[:,12], 200)
 xlabel('Number of Bursts')
 show()
 
