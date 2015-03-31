@@ -129,6 +129,8 @@ void GaussPrior3D::to_uniform(std::vector<double>& vec) const
 
 void GaussPrior3D::print(std::ostream& out) const
 {
-	out<<" ";
+	out<<mean_logA<<" "<<mean_logDuration<<" "<<mean_logSkew<<" ";
+	out<<co_ADuration<<" "<<co_ASkew<<" "<<co_durationSkew<<" ";
+	out<<sig_logA<<" "<<sig_logDuration<<" "<<sig_logSkew<<" ";
 }
 
