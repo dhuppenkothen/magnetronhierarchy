@@ -102,29 +102,39 @@ double GaussPrior3D::log_pdf(const std::vector<double>& vec) const
 	if(vec[0] < t_min || vec[0] > t_max)
 		return -1E250;
 
-	logP += -log(sig_logA) - 0.5*pow((vec[1] - mean_logA)/sig_logA, 2);
-	logP += -log(sig_logDuration) - 0.5*pow((vec[2] - mean_logDuration - co_ADuration*vec[1])/sig_logDuration, 2);
-	logP += -log(sig_logSkew) - 0.5*pow((vec[3] - mean_logSkew - co_ASkew*vec[1] - co_durationSkew*vec[2])/sig_logSkew, 2);
+	double n1 = (vec[1] - mean_logA)/sig_logA;
+	double n2 = (vec[2] - mean_logDuration - co_ADuration*n1)/sig_logDuration;
 
-	return 0.;
+	logP += -log(sig_logA) - 0.5*pow((vec[1] - mean_logA)/sig_logA, 2);
+	logP += -log(sig_logDuration) - 0.5*pow((vec[2] - mean_logDuration - co_ADuration*n1)/sig_logDuration, 2);
+	logP += -log(sig_logSkew) - 0.5*pow((vec[3] -  mean_logSkew - co_ASkew*n1 - co_durationSkew*n2)/sig_logSkew, 2);
+
+	return logP;
 }
 
 void GaussPrior3D::from_uniform(std::vector<double>& vec) const
 {
+	double n1 = gsl_cdf_ugaussian_Pinv(vec[1]);
+	double n2 = gsl_cdf_ugaussian_Pinv(vec[2]);
+
 	vec[0] = t_min + (t_max - t_min)*vec[0];
-	vec[1] = mean_logA + sig_logA*gsl_cdf_ugaussian_Pinv(vec[1]);
-	vec[2] = mean_logDuration + co_ADuration*vec[1]
-			+ sig_logDuration*gsl_cdf_ugaussian_Pinv(vec[2]);
-	vec[3] = mean_logSkew + co_ASkew*vec[1] + co_durationSkew*vec[2]
+	vec[1] = mean_logA + sig_logA*n1;
+	vec[2] = mean_logDuration + co_ADuration*n1 + sig_logDuration*n2;
+	vec[3] = mean_logSkew + co_ASkew*n1 + co_durationSkew*n2
 			+ sig_logSkew*gsl_cdf_ugaussian_Pinv(vec[3]);
 }
 
 void GaussPrior3D::to_uniform(std::vector<double>& vec) const
 {
-	vec[3] = gsl_cdf_ugaussian_P((vec[3] - mean_logSkew - co_ASkew*vec[1] - co_durationSkew*vec[2])/sig_logSkew);
-	vec[2] = gsl_cdf_ugaussian_P((vec[2] - mean_logDuration - co_ADuration*vec[1])/sig_logDuration);
-	vec[1] = gsl_cdf_ugaussian_P((vec[1] - mean_logA)/sig_logA);
 	vec[0] = (vec[0] - t_min)/(t_max - t_min);
+
+	double n1 = (vec[1] - mean_logA)/sig_logA;
+	double n2 = (vec[2] - mean_logDuration - co_ADuration*n1)/sig_logDuration;
+	double n3 = (vec[3] - mean_logSkew - co_ASkew*n1 - co_durationSkew*n2)/sig_logSkew;
+
+	vec[1] = gsl_cdf_ugaussian_P(n1);
+	vec[2] = gsl_cdf_ugaussian_P(n2);
+	vec[3] = gsl_cdf_ugaussian_P(n3);
 }
 
 void GaussPrior3D::print(std::ostream& out) const
