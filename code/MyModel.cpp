@@ -54,7 +54,7 @@ void MyModel::calculate_mu()
 		mu.assign(mu.size(), background);
 
 	double amplitude, duration, skew;
-	double rise, fall, scale;
+	double rise, fall, scale, exparg;
 
 	for(size_t j=0; j<components.size(); j++)
 	{
@@ -69,9 +69,9 @@ void MyModel::calculate_mu()
 		{
 			scale = (t[i] > components[j][0])?(fall):(rise);
 
-			mu[i] += amplitude
-					*exp(-fabs(t[i] - components[j][0])/
-						scale);
+			exparg = -fabs(t[i] - components[j][0])/scale;
+			if(exparg > -10.)
+				mu[i] += amplitude*exp(exparg);
 		}
 	}
 }
