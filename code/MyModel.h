@@ -23,7 +23,7 @@
 #include "Model.h"
 #include "Data.h"
 #include "RJObject.h"
-#include "ClassicMassInf1D.h"
+#include "GaussPrior3D.h"
 #include <vector>
 
 class MyModel:public DNest3::Model
@@ -36,7 +36,7 @@ class MyModel:public DNest3::Model
 		double background;
 
 		// The bursts
-		RJObject<ClassicMassInf1D> bursts;
+		RJObject<GaussPrior3D> bursts;
 
 		// Poisson mean
 		std::vector<long double> mu;
