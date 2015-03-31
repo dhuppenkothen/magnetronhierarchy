@@ -177,6 +177,45 @@ explicit density estimation. Their method doesn't appear to immediately apply to
 the situation here however, where we are simultaneously sampling from joint
 posteriors with many nuisance variables $\{\theta_{n,m}\}$.
 
+\subsection*{Alternative: importance reweighting of independent inferences}
+
+An alternative way to combine beliefs about hyperparameters from independent
+runs was used by \citet{brewer2014}. The marginal likelihood $p(\alpha\g
+\by_m)$, which is the normalizing constant of the posterior $p(\{\theta_m\}\g
+\by_m,\alpha)$, can be estimated by importance sampling, using samples from a
+posterior computed using a reference prior $\pi(\theta)$, rather than the prior
+given by $\alpha$.
+
+Given that the parameters $\{\theta_m\}$ for a burst is a high-dimensional
+object, importance sampling may not work well. Although after preliminary runs,
+the reference prior could be refocussed to concentrate the parameters in a
+region typical of probable $\alpha$'s.
+
+We wouldn't need to do any form of density estimation. Although each agent
+running $S$ Monte Carlo iterations would have to communicate $S$ means and
+covariances of posterior $\theta$'s. And the resulting approximate posterior
+over $\alpha$ would involve a lot more computation to evaluate pointwise than
+the approach of the previous section.
+
+Even if we don't use this approach now, we may wish to use it to estimate
+$p(\beta\g \data)$, where $\beta$ are higher-level hyperparameters, specifying
+how $\alpha$ is distributed across bursts.
+
+
+\subsection*{Another alternative: a Rao--Blackwellization}
+
+Now each agent again samples from both hyperparameters $\alpha$ and word
+parameters $\theta$. Given a normal-inverse Wishart prior over $\alpha$, the
+conditional posterior given $\{\theta_{n}\}$ in a burst will be normal-inverse
+Wishart. If each agent samples $\alpha$ and $\theta$, we can discard the
+$\alpha$'s and estimate $p(\alpha\g\by_m)$ as an average of normal-inverse
+Wisharts, one for each of the $S$ $\theta$'s we sampled.
+
+Under this approach, the agent's posterior looks a bit like a kernel density
+estimate based on its $S$ samples. The posterior is approximated with a uniform
+mixture of $S$ standard densities (albeit normal-inverse Wisharts). However,
+there isn't the same arbitrary blurring of standard kernel density estimation.
+
 
 \bibliographystyle{abbrvnat} % unsrtnat / abbrvnat
 \bibliography{bibs}
