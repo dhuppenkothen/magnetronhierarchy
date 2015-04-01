@@ -23,6 +23,7 @@ class Data
 		double get_t_min() const { return t_min; }
 		double get_t_max() const { return t_max; }
 		double get_t_range() const { return t_range; }
+		double get_dt() const { return dt; }
 
 	// Singleton
 	private:
