@@ -1,0 +1,14 @@
+First fix problem with short spikes. Integrate spikes over bins analytically?
+Or make minimum width be bin width... if lazier. Don't think need that
+constraint if integrate spikes properly?
+
+    Brendon and Daniela
+
+
+Then infer two models:
+
+- Assume all θ come from a single α*
+    Iain and Daniela to find beliefs about α*
+- Assume all α_m come from a common distribution P(α_m|β)
+    Brendon and Daniela to find beliefs about β
+
