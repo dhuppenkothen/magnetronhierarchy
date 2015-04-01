@@ -21,6 +21,7 @@
 \newcommand{\bx}{{\bf x}}
 \newcommand{\bm}{{\bf m}}
 \newcommand{\by}{{\bf y}}
+\newcommand{\btheta}{{\boldsymbol{\theta}}}
 \newcommand{\N}{\mathcal{N}}
 \newcommand{\sth}{^{(s)}}
 %\newcommand{\data}{\{\by_m\}}
@@ -36,53 +37,66 @@
 
 \subsection*{A hierarchical prior covering energy-duration relationships}
 
-Following from our previous work, our simple word model of a spike is defined by
-a rise time $\tau$, Amplitude $A$, and skew $s$ such that the fall time is
-$\tau s$.
+We slightly modify the parameterization of a word model of a spike from our
+previous work. Each word is now described by a duration $D$, Amplitude $A$, and
+skew $s$.
 
-The duration of a spike is the rise time plus the fall time: $D = \tau (1\tp s)$.
+The duration of a spike is $D = \tau (1\tp s)$, where $\tau$ is the rise time,
+and the fall time is $\tau s$.
 
-The average energy of a spike (assuming energy of photons is unrelated to spike
-shape or scale) is proportional to the area under the curve: $E = AD = A\tau(1\tp s)$.
+We have $M$ bursts, where burst $m$ has a set of $N_m$ word parameters $\btheta_m = \{\theta_{n,m}\}_{n=1}^{N_m}$.
 
-We place a multivariate Gaussian prior on the word properties, parameterized in
-the following way:
+The model assumes that each vector of word parameters $\theta$ comes from a
+multivariate Gaussian distribution, parameterized in the following way:
 \[
-    \theta_n = [\log A_n,\, \log D_n,\, \log s_n]^\top,
-    \quad p(\theta_n\g \alpha) = \N(\theta_n;\, \bm_\alpha, \Sigma_\alpha).
+    \theta = [\log A,\, \log D,\, \log s]^\top,
+    \quad p(\theta\g \alpha) = \N(\theta;\, \bm_\alpha, \Sigma_\alpha).
 \]
-Here, hyperparameters $\alpha$ set the common distribution shared by all words
-across all bursts. (Future models may allow a different $\alpha_m$ for each
-burst, but learn a shared prior over what they are.)
-
-If each element of $\theta$ is independent of the others, then the log energy
-will be the log duration plus `noise' (an independent log-amplitude for each
-burst). Energy will scale with duration, but with multiplicative noise.
-
-Dependencies in $\theta$ can lead to other energy-duration relationships. For
-example, if log-amplitude is equal to log-duration plus noise, then then the log
-energy will be twice the log duration plus noise. Energy will then scale with
-duration squared, again with multiplicative noise.
+In previous work, each burst had its own hyperparameters $\alpha_m$, which
+apriori came from a fixed broad distribution. Here, we will test two alternative
+models. First we will assume that every burst shares the same word distribution,
+specified by a common $\alpha$. Second, we will assume that each burst does have
+its own hyperparameters $\alpha_m$, but we will learn the distribution that they
+come from. We might learn that the $\alpha$'s do take on similar values across
+bursts, or that they have some features in common.
 
 Here $\alpha$ has 9 degrees of freedom. We hope that the posterior will be
 fairly insensitive to the choice of prior over $\alpha$. Our computations will
 use a broad prior, chosen for computational convenience, which we will reweight
 to obtain posteriors for different possible choices of prior as necessary.
 
-In our implementation we set $\alpha$ to contain the mean $m_\alpha$ and the
+In our implementation, we set $\alpha$ to contain the mean $m_\alpha$ and the
 elements of Cholesky decomposition of $\Sigma_\alpha$ after taking the log of
-the diagonal elements. Taking the log of the diagonal makes the alphas both
+the diagonal elements. Taking the log of the diagonal makes $\alpha$ both
 unconstrained and have a bijection with the parameters of the Gaussian prior
-$(m_\alpha,\Sigma_\alpha)$. We could also have used the Cholesky decomposition
-of the inverse covariance matrix.
+$(m_\alpha,\Sigma_\alpha)$. Other parameterizations may be convenient in other
+implementations, for example using the Cholesky decomposition of the inverse
+covariance matrix.
+
+
+\subsection*{Learning energy-duration relationships}
+
+The average energy of a spike\,---\,assuming the energy of photons is unrelated
+to spike shape or scale\,---\,is proportional to the area under the curve:
+$E = AD = A\tau(1\tp s)$.
+
+If each element of $\theta$ is independent of the others, then the log energy
+will be the log duration plus `noise' (an independent log-amplitude for each
+burst). Energy will scale with duration, but with multiplicative noise.
+
+Dependencies in $\theta$ can lead to other energy-duration relationships. For
+example, if log-amplitude is equal to log-duration plus noise, then the log
+energy will be twice the log duration plus noise. Energy will then scale with
+duration squared, again with multiplicative noise.
+
 
 \subsection*{Joint Monte Carlo Inference}
 
 The hyperparameters $\alpha$ can be seen as just parameters of the model, like
-the parameters $\{\theta_n\}$. A standard Monte Carlo inference scheme could be
+the parameters $\{\btheta_m\}$. A standard Monte Carlo inference scheme could be
 used to same $S$ joint plausible explanations,
-$\{(\alpha^{(s)}, \{\theta_n^{(s)}\}_{n=1}^N)\}_{s=1}^S$, of the $N$ bursts.
-Where each explanation $(\alpha^{(s)}, \{\theta_n^{(s)}\}_{n=1}^N)$ is a sample
+$\{(\alpha^{(s)}, \{\btheta_m^{(s)}\}_{m=1}^M)\}_{s=1}^S$, of the $M$ bursts.
+Where each explanation $(\alpha^{(s)}, \{\theta_m^{(s)}\}_{m=1}^M)$ is a sample
 from the joint posterior.
 
 We could also consider optimizing the hyperparameters \citep[e.g., Monte Carlo
@@ -175,18 +189,30 @@ explicitly as a way to construct `embarrassingly parallel' Monte Carlo methods
 these methods, and suggests an alternative view of kernel smoothing to avoid
 explicit density estimation. Their method doesn't appear to immediately apply to
 the situation here however, where we are simultaneously sampling from joint
-posteriors with many nuisance variables $\{\theta_{n,m}\}$.
+posteriors with many nuisance variables $\{\btheta_m\}$.
 
 \subsection*{Alternative: importance reweighting of independent inferences}
 
 An alternative way to combine beliefs about hyperparameters from independent
-runs was used by \citet{brewer2014}. The marginal likelihood $p(\alpha\g
-\by_m)$, which is the normalizing constant of the posterior $p(\{\theta_m\}\g
-\by_m,\alpha)$, can be estimated by importance sampling, using samples from a
-posterior computed using a reference prior $\pi(\theta)$, rather than the prior
-given by $\alpha$.
+runs was used by \citet{brewer2014}. Conditioned on a particular setting of the
+hyperparameters $\alpha$, the posterior for a burst or minibatch of data $\by_m$
+is:
+\[
+    p(\btheta_m\g \by_m, \alpha) =
+        \frac{p(\by_m\g\theta)\,p(\btheta_m\g\alpha)}{p(\by_m\g\alpha)}.
+\]
+Each agent samples this posterior for a broad reference prior, corresponding to
+some hyperparameters $\alpha_0$. The marginal likelihood $p(\alpha\g \by_m)$ for
+other $\alpha$'s, is the normalizing constant of the equation above, which can
+be estimated (up to a constant) by importance sampling, given the gathered
+samples:
+\[
+p(\by_m\g\alpha) \,\propto\, \mathbb{E}_{\alpha_0}\!\left[\frac{p(\btheta_m\g\alpha)}{p(\btheta_m\g\alpha_0)}\right]
+\,\approx\, \frac{1}{S} \sum_{s=1}^S \frac{p(\btheta_m\sth\g\alpha)}{p(\btheta_m\sth\g\alpha_0)}, ~~~
+    \btheta_m\sth \sim p(\btheta_m\g \by_m, \alpha_0).
+\]
 
-Given that the parameters $\{\theta_m\}$ for a burst is a high-dimensional
+Given that the parameters for a burst $\btheta_m$ is a high-dimensional
 object, importance sampling may not work well. Although after preliminary runs,
 the reference prior could be refocussed to concentrate the parameters in a
 region typical of probable $\alpha$'s.
@@ -204,12 +230,12 @@ how $\alpha$ is distributed across bursts.
 
 \subsection*{Another alternative: a Rao--Blackwellization}
 
-Now each agent again samples from both hyperparameters $\alpha$ and word
-parameters $\theta$. Given a normal-inverse Wishart prior over $\alpha$, the
-conditional posterior given $\{\theta_{n}\}$ in a burst will be normal-inverse
-Wishart. If each agent samples $\alpha$ and $\theta$, we can discard the
+Now each agent $m$ again samples from both hyperparameters $\alpha$ and its word
+parameters $\btheta_m$. Given a normal-inverse Wishart prior over $\alpha$, the
+conditional posterior given word parameters for the burst $\btheta_m$ will be normal-inverse
+Wishart. If each agent samples $\alpha$ and $\btheta_m$, we can discard the
 $\alpha$'s and estimate $p(\alpha\g\by_m)$ as an average of normal-inverse
-Wisharts, one for each of the $S$ $\theta$'s we sampled.
+Wisharts, one for each of the $\btheta_m\sth$'s we sampled.
 
 Under this approach, the agent's posterior looks a bit like a kernel density
 estimate based on its $S$ samples. The posterior is approximated with a uniform
