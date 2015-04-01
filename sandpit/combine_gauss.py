@@ -1,6 +1,6 @@
 import numpy as np
 
-# TODO not tested (or even run) __at all__
+# TODO test this a little bit!
 
 def gaussian_combination(mus, Sigmas):
     """
@@ -32,8 +32,8 @@ def gaussian_combination(mus, Sigmas):
         prec_m = np.linalg.inv(Sigmas[mm])
         prec += prec_m
         mu_tmp += np.dot(prec_m, mus[mm])
-    mu = np.dot(prec, mu_tmp)
     Sigma = np.linalg.inv(prec)
+    mu = np.dot(Sigma, mu_tmp)
 
     return (mu, Sigma)
 
@@ -54,7 +54,7 @@ def gauss_from_ensemble_samples(xx):
         # TODO consider smoothing diagonal
         Sigmas[mm] = np.cov(xx[mm], rowvar=False)
 
-    return gaussian_combination(mus, Sigmas):
+    return gaussian_combination(mus, Sigmas)
 
 # TODO if the agents in the ensemble used Gaussian priors we want to divide out,
 # we'll need to get those from somewhere, and add them to the list, with

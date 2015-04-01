@@ -143,7 +143,7 @@ then our approximate global posterior becomes
 where the global mean and variance are:
 \begin{align}
     \Sigma &\,=\, \left[ \sum_{m=1}^M (\Sigma_m^{-1} - S_m^{-1}) \right]^{-1} \\
-    \mu &\,=\, \Sigma^{-1} \sum_{m=1}^M (\Sigma_m^{-1}\mu_m - S_m^{-1}\bm_m) .
+    \mu &\,=\, \Sigma \sum_{m=1}^M (\Sigma_m^{-1}\mu_m - S_m^{-1}\bm_m) .
 \end{align}
 It is possible in cases where the Gaussian approximations are poor, especially
 if the prior variances are narrow, that the resulting $\Sigma$ isn't positive
