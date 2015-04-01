@@ -6,4 +6,10 @@ weights.txt
 posterior_sample.txt
 *.pyc
 *.o
+*~
+*.aux
+*.dvi
+*.log
+*.pdf
+*.pyc
 

@@ -1,0 +1,16 @@
+Column 0 = background
+Column 1 = dimensionality of a word
+Column 2 = max number of words
+Columns 3-5 = means of logamplitude, logduration, logskew
+Columns 6-8 = coefficients (amplitude->duration, amplitude->skew, duration->skew)
+Columns 9-11 = standard deviations
+Column 12 = number of words
+Columns 13-113 = times of spikes (zero padded)
+Columns 113-213 = log amplitudes (zero padded)
+Columns 213-313 = log durations (zero padded)
+Columns 313-413 = log skews (zero padded)
+Columns 414 - end = mu
+
+
+
+
