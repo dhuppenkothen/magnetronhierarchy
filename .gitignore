@@ -12,4 +12,6 @@ posterior_sample.txt
 *.log
 *.pdf
 *.pyc
+*.bbl
+*.blg
 
