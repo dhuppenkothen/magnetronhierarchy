@@ -106,7 +106,7 @@ void MyModel::calculate_mu()
 
 	// Add the "noise" to the rate
 	for(size_t i=0; i<mu.size(); i++)
-		mu[i] += noise_sigma*noise_normals[i];
+		mu[i] *= exp(noise_sigma*noise_normals[i]);
 }
 
 void MyModel::fromPrior()
@@ -115,8 +115,7 @@ void MyModel::fromPrior()
 	background = exp(background);
 	bursts.fromPrior();
 
-	noise_sigma = tan(M_PI*(0.97*randomU() - 0.485));
-	noise_sigma = exp(background);
+	noise_sigma = exp(log(1E-3) + log(1E3)*randomU());
 	calculate_mu();
 }
 
@@ -148,10 +147,8 @@ double MyModel::perturb()
 	else if(randomU() <= 0.5)
 	{
 		noise_sigma = log(noise_sigma);
-		noise_sigma = (atan(noise_sigma)/M_PI + 0.485)/0.97;
-		noise_sigma += pow(10., 1.5 - 6.*randomU())*randn();
-		noise_sigma = mod(noise_sigma, 1.);
-		noise_sigma = tan(M_PI*(0.97*noise_sigma - 0.485));
+		noise_sigma += log(1E3)*randh();
+		wrap(noise_sigma, log(1E-3), log(1.));
 		noise_sigma = exp(noise_sigma);
 		calculate_mu();
 	}
