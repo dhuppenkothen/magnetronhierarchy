@@ -38,6 +38,10 @@ class MyModel:public DNest3::Model
 		// The bursts
 		RJObject<GaussPrior3D> bursts;
 
+		// Extra white noise on the poisson rate
+		std::vector<double> noise_normals;
+		double noise_sigma;
+
 		// Poisson mean
 		std::vector<long double> mu;
 

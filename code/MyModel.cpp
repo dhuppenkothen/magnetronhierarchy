@@ -33,6 +33,7 @@ MyModel::MyModel()
 //:bursts(4, 100, false, ClassicMassInf1D(data.get_t_min(), data.get_t_max(),
 //				1E-3*data.get_y_mean(), 1E3*data.get_y_mean()))
 :bursts(4, 100, false, GaussPrior3D(data.get_t_min(), data.get_t_max()))
+,noise_normals(data.get_t().size())
 ,mu(data.get_t().size())
 {
 
@@ -102,6 +103,10 @@ void MyModel::calculate_mu()
 //				mu[i] += amplitude*exp(exparg);
 		}
 	}
+
+	// Add the "noise" to the rate
+	for(size_t i=0; i<mu.size(); i++)
+		mu[i] += noise_sigma*noise_normals[i];
 }
 
 void MyModel::fromPrior()
@@ -109,6 +114,9 @@ void MyModel::fromPrior()
 	background = tan(M_PI*(0.97*randomU() - 0.485));
 	background = exp(background);
 	bursts.fromPrior();
+
+	noise_sigma = tan(M_PI*(0.97*randomU() - 0.485));
+	noise_sigma = exp(background);
 	calculate_mu();
 }
 
@@ -131,10 +139,30 @@ double MyModel::perturb()
 		for(size_t i=0; i<mu.size(); i++)
 			mu[i] += background;
 	}
-	else
+	else if(randomU() <= 0.7)
 	{
 		logH += bursts.perturb();
 //		bursts.consolidate_diff();
+		calculate_mu();
+	}
+	else if(randomU() <= 0.5)
+	{
+		noise_sigma = log(noise_sigma);
+		noise_sigma = (atan(noise_sigma)/M_PI + 0.485)/0.97;
+		noise_sigma += pow(10., 1.5 - 6.*randomU())*randn();
+		noise_sigma = mod(noise_sigma, 1.);
+		noise_sigma = tan(M_PI*(0.97*noise_sigma - 0.485));
+		noise_sigma = exp(noise_sigma);
+		calculate_mu();
+	}
+	else
+	{
+		int num = exp(log((double)noise_normals.size())*randomU());
+		for(int i=0; i<num; i++)
+		{
+			int k = randInt(noise_normals.size());
+			noise_normals[k] = randn();
+		}
 		calculate_mu();
 	}
 
