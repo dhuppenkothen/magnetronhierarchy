@@ -42,6 +42,7 @@ void Data::compute_summaries()
 	t_min = *min_element(t.begin(), t.end());
 	t_max = *max_element(t.begin(), t.end());
 	t_range = t_max - t_min;
+	dt = t[1] - t[0];
 
 	// Left and right edges of the data bins
 	t_left.assign(t.size(), 0.);
