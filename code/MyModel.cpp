@@ -32,7 +32,7 @@ const Data& MyModel::data = Data::get_instance();
 MyModel::MyModel()
 //:bursts(4, 100, false, ClassicMassInf1D(data.get_t_min(), data.get_t_max(),
 //				1E-3*data.get_y_mean(), 1E3*data.get_y_mean()))
-:bursts(4, 100, false, GaussPrior3D(data.get_t_min(), data.get_t_max()))
+:bursts(4, 100, true, GaussPrior3D(data.get_t_min(), data.get_t_max()))
 ,mu(data.get_t().size())
 {
 
@@ -41,6 +41,8 @@ MyModel::MyModel()
 void MyModel::calculate_mu()
 {
 	const vector<double>& t = data.get_t();
+	const vector<double>& t_left = data.get_t_left();
+	const vector<double>& t_right = data.get_t_right();
 
 	// Update or from scratch?
 	// NEVER UPDATE BECAUSE COMPONENT IS A LOG-AMPLITUDE, NOT AN AMPLITUDE!
@@ -54,11 +56,12 @@ void MyModel::calculate_mu()
 	if(!update)
 		mu.assign(mu.size(), background);
 
-	double amplitude, duration, skew;
-	double rise, fall, scale, exparg;
+	double amplitude, duration, skew, tc;
+	double rise, fall;
 
 	for(size_t j=0; j<components.size(); j++)
 	{
+		tc = components[j][0];
 		amplitude = exp(components[j][1]);
 		duration = exp(components[j][2]);
 		skew = exp(components[j][3]);
@@ -68,11 +71,35 @@ void MyModel::calculate_mu()
 
 		for(size_t i=0; i<mu.size(); i++)
 		{
-			scale = (t[i] > components[j][0])?(fall):(rise);
+			if(tc <= t_left[i])
+			{
+				// Bin to the right of peak
+				mu[i] += amplitude*fall*
+						(exp((tc - t_left[i])/fall) -
+						 exp((tc - t_right[i])/fall));
+			}
+			else if(tc >= t_right[i])
+			{
+				// Bin to the left of peak
+				mu[i] += -amplitude*rise*
+						(exp((t_left[i] - tc)/rise) -
+						 exp((t_right[i] - tc)/rise));
+			}
+			else
+			{
+				// Part to the left
+				mu[i] += -amplitude*rise*
+						(exp((t_left[i] - tc)/rise) -
+						 1.);
 
-			exparg = -fabs(t[i] - components[j][0])/scale;
-			if(exparg > -10.)
-				mu[i] += amplitude*exp(exparg);
+				// Part to the right
+				mu[i] += amplitude*fall*
+						(1. -
+						 exp((tc - t_right[i])/fall));
+			}
+//			exparg = -fabs(t[i] - components[j][0])/scale;
+//			if(exparg > -10.)
+//				mu[i] += amplitude*exp(exparg);
 		}
 	}
 }
