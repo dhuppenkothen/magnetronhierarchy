@@ -32,7 +32,7 @@ const Data& MyModel::data = Data::get_instance();
 MyModel::MyModel()
 //:bursts(4, 100, false, ClassicMassInf1D(data.get_t_min(), data.get_t_max(),
 //				1E-3*data.get_y_mean(), 1E3*data.get_y_mean()))
-:bursts(4, 100, true, GaussPrior3D(data.get_t_min(), data.get_t_max()))
+:bursts(4, 100, false, GaussPrior3D(data.get_t_min(), data.get_t_max()))
 ,mu(data.get_t().size())
 {
 
@@ -74,26 +74,26 @@ void MyModel::calculate_mu()
 			if(tc <= t_left[i])
 			{
 				// Bin to the right of peak
-				mu[i] += amplitude*fall*
+				mu[i] += amplitude*fall/data.get_dt()*
 						(exp((tc - t_left[i])/fall) -
 						 exp((tc - t_right[i])/fall));
 			}
 			else if(tc >= t_right[i])
 			{
 				// Bin to the left of peak
-				mu[i] += -amplitude*rise*
+				mu[i] += -amplitude*rise/data.get_dt()*
 						(exp((t_left[i] - tc)/rise) -
 						 exp((t_right[i] - tc)/rise));
 			}
 			else
 			{
 				// Part to the left
-				mu[i] += -amplitude*rise*
+				mu[i] += -amplitude*rise/data.get_dt()*
 						(exp((t_left[i] - tc)/rise) -
 						 1.);
 
 				// Part to the right
-				mu[i] += amplitude*fall*
+				mu[i] += amplitude*fall/data.get_dt()*
 						(1. -
 						 exp((tc - t_right[i])/fall));
 			}
