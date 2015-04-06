@@ -41,7 +41,6 @@ MyModel::MyModel()
 
 void MyModel::calculate_mu()
 {
-	const vector<double>& t = data.get_t();
 	const vector<double>& t_left = data.get_t_left();
 	const vector<double>& t_right = data.get_t_right();
 
