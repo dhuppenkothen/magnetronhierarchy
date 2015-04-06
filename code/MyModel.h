@@ -40,7 +40,7 @@ class MyModel:public DNest3::Model
 
 		// Extra white noise on the poisson rate
 		std::vector<double> noise_normals;
-		double noise_sigma;
+		double noise_sigma, noise_L;
 
 		// Poisson mean
 		std::vector<long double> mu;

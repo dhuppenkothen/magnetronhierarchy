@@ -104,9 +104,22 @@ void MyModel::calculate_mu()
 		}
 	}
 
-	// Add the "noise" to the rate
+	// Compute the OU process
+	vector<double> y(mu.size());
+	double alpha = exp(-1./noise_L);
+	// y[i+1] = a*y[i] + sigma*n[i]
+	// S^2 = a^2 S^2 + sigma^2
+	// S^2 = sigma^2/(1 - a^2)
+	// S = sigma/sqrt(1 - a^2)
+
 	for(size_t i=0; i<mu.size(); i++)
-		mu[i] *= exp(noise_sigma*noise_normals[i]);
+	{
+		if(i==0)
+			y[i] = noise_sigma/sqrt(1. - alpha*alpha)*noise_normals[i];
+		else
+			y[i] = alpha*y[i-1] + noise_sigma*noise_normals[i];
+		mu[i] *= exp(y[i]);
+	}
 }
 
 void MyModel::fromPrior()
@@ -116,6 +129,8 @@ void MyModel::fromPrior()
 	bursts.fromPrior();
 
 	noise_sigma = exp(log(1E-3) + log(1E3)*randomU());
+	noise_L = exp(log(1E-2*Data::get_instance().get_t_range())
+			+ log(1E3)*randomU());
 	calculate_mu();
 }
 
@@ -150,6 +165,12 @@ double MyModel::perturb()
 		noise_sigma += log(1E3)*randh();
 		wrap(noise_sigma, log(1E-3), log(1.));
 		noise_sigma = exp(noise_sigma);
+
+		noise_L = log(noise_L);
+		noise_L += log(1E3)*randh();
+		wrap(noise_L, log(1E-2*Data::get_instance().get_t_range()), log(10.*Data::get_instance().get_t_range()));
+		noise_L = exp(noise_L);
+
 		calculate_mu();
 	}
 	else
