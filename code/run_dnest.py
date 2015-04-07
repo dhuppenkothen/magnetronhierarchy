@@ -33,13 +33,14 @@ def rewrite_main(filename, dnest_dir = "./"):
     return
 
 
-def rewrite_options(nlevels=200, dnest_dir="./"):
+def rewrite_options(nlevels=200, dnest_dir="./", thinning=20000):
 
     mfile = open(dnest_dir+"OPTIONS", "r")
     mdata = mfile.readlines()
     mfile.close()
 
     mdata[-4] = '%i\t# maximum number of levels\n'%nlevels
+    mdata[4] = '%i\t# save interval\n\n'%thinning
 
     mwrite_file = open(dnest_dir+"OPTIONS.tmp", "w")
 
@@ -250,7 +251,7 @@ def run_burst(filename, dnest_dir = "./", levelfilename=None, nlevels=200, nsims
     ### first run: set levels to 200
     print("Rewriting DNest run file")
     rewrite_main(filename, dnest_dir)
-    rewrite_options(nlevels=nlevels, dnest_dir=dnest_dir)
+    rewrite_options(nlevels=nlevels, dnest_dir=dnest_dir, thinning=20000)
     remake_model()
 
     fdir = filename.split("/")
@@ -302,7 +303,7 @@ def run_burst(filename, dnest_dir = "./", levelfilename=None, nlevels=200, nsims
         levelfile.write("%s \t %i \n" %(filename, nlevels))
         levelfile.close()
 
-    rewrite_options(nlevels=nlevels, dnest_dir=dnest_dir)
+    rewrite_options(nlevels=nlevels, dnest_dir=dnest_dir, thinning=2000)
     remake_model()
 
     dnest_process = subprocess.Popen(["./main", "-t", "8"])
