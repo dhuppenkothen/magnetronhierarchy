@@ -19,7 +19,7 @@ void GaussPrior3D::fromPrior()
 {
 	// The three means
 	mean_logA = 5.*randn();
-	mean_logDuration = log(1E-3*t_range) + log(1E3)*randomU();
+	mean_logDuration = -10. +  11.5*randomU();
 	mean_logSkew = -5. + 10.*randomU();
 
 	co_ADuration = -10. + 20.*randomU();

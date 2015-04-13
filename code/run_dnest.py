@@ -271,7 +271,7 @@ def run_burst(filename, dnest_dir = "./", levelfilename=None, nlevels=200, nsims
 
     print("First run of DNest: Find number of levels")
     ## run DNest
-    dnest_process = subprocess.Popen(["./main", "-t", "8"])
+    dnest_process = subprocess.Popen(["nice", "-19", "./main", "-t", "8"])
 
 
 
@@ -306,7 +306,7 @@ def run_burst(filename, dnest_dir = "./", levelfilename=None, nlevels=200, nsims
     rewrite_options(nlevels=nlevels, dnest_dir=dnest_dir, thinning=2000)
     remake_model()
 
-    dnest_process = subprocess.Popen(["./main", "-t", "8"])
+    dnest_process = subprocess.Popen(["nice", "-19", "./main", "-t", "8"])
 
     endflag = False
     while endflag is False:
