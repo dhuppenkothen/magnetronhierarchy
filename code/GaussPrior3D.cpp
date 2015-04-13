@@ -45,8 +45,8 @@ double GaussPrior3D::perturb_parameters()
 	}
 	if(which == 1)
 	{
-		mean_logDuration += log(1E3)*randh();
-		wrap(mean_logDuration, log(1E-3*t_range), log(t_range));
+		mean_logDuration += 11.5*randh();
+		wrap(mean_logDuration, -10., 1.5);
 	}
 	if(which == 2)
 	{
