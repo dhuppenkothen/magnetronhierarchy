@@ -11,7 +11,7 @@ def get_samples():
   Returns a list of 2D numpy arrays. Each element
   of the list is the posterior samples for one burst.
   """
-  num_bursts = 3
+  num_bursts = 10
   num_params = 1   # Number of within-burst hyperparameters
   samples = []
 
@@ -42,9 +42,16 @@ if __name__ == '__main__':
   # Generate or load samples
   samples = get_samples()
 
+  # Display the samples
   for i in range(0, len(samples)):
     plt.hist(samples[i][:,0], 100, alpha=0.2)
   plt.show()
 
-  print(log_likelihood(0., samples))
+  # Calculate log likelihood as a function of mu
+  mu = np.linspace(-10., 10., 201)
+  logL = np.zeros(mu.shape)
+  for i in range(0, len(logL)):
+    logL[i] = log_likelihood(mu[i], samples)
+  plt.plot(mu, np.exp(logL - logL.max()))
+  plt.show()
 
