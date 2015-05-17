@@ -68,7 +68,8 @@ def log_likelihood(params):
   for i in range(len(samples)):
     interim_prior = 1./200
     for j in range(len(mu)):
-      integrand = np.exp(-0.5*(samples[i][j] - mu[j])**2)/sig[j]/interim_prior
+      integrand = np.exp(-0.5*(samples[i][j] - mu[j])**2/sig[j]**2)/sig[j]\
+                         /interim_prior
       logL += np.log(np.mean(integrand))
 
   return logL
