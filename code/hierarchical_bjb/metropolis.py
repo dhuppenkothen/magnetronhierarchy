@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 rng.seed(0)
 
 # Import the model
-from transit_model import from_prior, log_prior, log_likelihood, proposal,\
+from hierarchical import from_prior, log_prior, log_likelihood, proposal,\
                               num_params
 
 # Generate a starting point from the prior
@@ -63,7 +63,7 @@ for i in range(0, steps):
     if (i+1)%plot_skip == 0:
       # Plot one of the parameters over time
       # Ignore the first 25% as burn-in
-      plt.plot(keep[(index//4):(index+1), -1], 'b')
+      plt.plot(keep[(index//4):(index+1), 0], 'b')
       plt.xlabel('Iteration')
       plt.draw()
 
