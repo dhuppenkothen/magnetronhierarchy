@@ -12,12 +12,12 @@ def get_samples():
   Returns a list of 2D numpy arrays. Each element
   of the list is the posterior samples for one burst.
   """
-  num_bursts = 10
+  num_bursts = 20
   num_params = 2   # Number of within-burst hyperparameters
   samples = []
 
   for i in range(0, num_bursts):
-    samples.append(rng.randn() + rng.randn(10000, num_params))
+    samples.append(rng.randn() + 0.1*rng.randn(10000, num_params))
 
   return samples
 
@@ -71,6 +71,9 @@ def log_likelihood(params):
       integrand = np.exp(-0.5*(samples[i][j] - mu[j])**2/sig[j]**2)/sig[j]\
                          /interim_prior
       logL += np.log(np.mean(integrand))
+
+  if np.isinf(logL) or np.isnan(logL):
+    logL = -1E300
 
   return logL
 
