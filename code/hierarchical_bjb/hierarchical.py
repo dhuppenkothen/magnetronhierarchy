@@ -29,22 +29,23 @@ samples = get_samples()
 num_params = 4
 
 # Some idea of how big the Metropolis proposals should be
-jump_sizes = np.array([20., np.log(1E6), 20., np.log(1E6)])
+jump_sizes = np.hstack([20.*np.ones(num_params//2),\
+                         np.log(1E6)*np.ones(num_params//2)])
 
 def from_prior():
   """
   A function to generate parameter values from the prior.
   Returns a numpy array of parameter values.
   """
-  return np.array([-10. + 20.*rng.rand(), np.log(1E-3) + np.log(1E6)*rng.rand(),\
-                   -10. + 20.*rng.rand(), np.log(1E-3) + np.log(1E6)*rng.rand()])
+  return np.hstack([-10. + 20.*rng.rand(num_params//2),\
+                      np.log(1E-3) + np.log(1E6)*rng.rand(num_params//2)])
 
 def log_prior(params):
   """
   Evaluate the (log of the) prior distribution
   """
-  mu = params[0::2]
-  log_sig = params[1::2]
+  mu = params[0:(num_params//2)]
+  log_sig = params[(num_params//2):]
 
   # Minus infinity, if out of bounds
   if np.logical_or(np.any(mu < -10.), np.any(mu > 10.)):
@@ -61,8 +62,9 @@ def log_likelihood(params):
   p(data | alpha) = \int p(theta | alpha) p(data | theta) dtheta
                   = Z \int p(theta | alpha)/pi(theta) p(data | theta) pi(theta)/Z dtheta
   """
-  mu = params[0::2]
-  sig = np.exp(params[1::2])
+  mu = params[0:(num_params//2)]
+  log_sig = params[(num_params//2):]
+  sig = np.exp(log_sig)
 
   logL = 0.
   for i in range(len(samples)):
