@@ -3,7 +3,7 @@ import numpy.random as rng
 import matplotlib.pyplot as plt
 
 # Set the seed
-rng.seed(0)
+rng.seed(2)
 
 # Import the model
 from hierarchical import from_prior, log_prior, log_likelihood, proposal,\
@@ -15,13 +15,13 @@ params = from_prior()
 logp, logl = log_prior(params), log_likelihood(params)
 
 # Total number of iterations
-steps = 200000
+steps = 10000
 
 # How often to save
-skip = 100
+skip = 10
 
 # How often to plot (should be divisible by skip)
-plot_skip = 1000
+plot_skip = 100
 
 # Storage array for the results
 # Extra column is for the log likelihood.
