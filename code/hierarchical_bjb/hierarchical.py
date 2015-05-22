@@ -26,7 +26,7 @@ def get_samples():
 samples = get_samples()
 
 # How many hyperparameters are there?
-num_params = 4
+num_params = 2*samples[0].shape[1]
 
 # Some idea of how big the Metropolis proposals should be
 jump_sizes = np.hstack([20.*np.ones(num_params//2),\
