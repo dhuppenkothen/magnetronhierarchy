@@ -74,8 +74,8 @@ def log_likelihood(params):
                          /interim_prior
       logL += np.log(np.mean(integrand))
 
-  if np.isinf(logL) or np.isnan(logL):
-    logL = -1E300
+      if np.isinf(logL) or np.isnan(logL):
+        logL = -1E300
 
   return logL
 
