@@ -43,15 +43,18 @@ def gauss_from_ensemble_samples(xx):
 
     Inputs:
         xx M,S,D Ensemble of size M. Each has S, D-dimensional samples
+           or a list of M arrays of size S_m,D
 
     We estimate M Gaussians, then find the Gaussian proportional to the product
     of the Gaussians.
     """
-    M, S, D = xx.shape
-    mus = xx.mean(1)
+    M = len(xx)
+    S0, D = xx[0].shape
     Sigmas = np.zeros((M,D,D))
+    mus = np.zeros((M,D))
     for mm in range(M):
         # TODO consider smoothing diagonal
+        mus[mm] = xx[mm].mean(0)
         Sigmas[mm] = np.cov(xx[mm], rowvar=False)
 
     return gaussian_combination(mus, Sigmas)
