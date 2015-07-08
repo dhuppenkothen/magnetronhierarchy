@@ -35,8 +35,8 @@ class MyModel:public DNest3::Model
 		// A flat background level
 		double background;
 
-		// The bursts
-		RJObject<GaussPrior3D> bursts;
+		// The spikes
+		RJObject<GaussPrior3D> spikes;
 
 		// Extra white noise on the poisson rate
 		std::vector<double> noise_normals;

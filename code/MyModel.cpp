@@ -30,9 +30,9 @@ using namespace DNest3;
 const Data& MyModel::data = Data::get_instance();
 
 MyModel::MyModel()
-//:bursts(4, 100, false, ClassicMassInf1D(data.get_t_min(), data.get_t_max(),
+//:spikes(4, 100, false, ClassicMassInf1D(data.get_t_min(), data.get_t_max(),
 //				1E-3*data.get_y_mean(), 1E3*data.get_y_mean()))
-:bursts(4, 100, false, GaussPrior3D(data.get_t_min(), data.get_t_max()))
+:spikes(4, 100, false, GaussPrior3D(data.get_t_min(), data.get_t_max()))
 ,noise_normals(data.get_t().size())
 ,mu(data.get_t().size())
 {
@@ -49,8 +49,8 @@ void MyModel::calculate_mu()
 	bool update = false;
 
 	// Get the components
-	const vector< vector<double> >& components = (update)?(bursts.get_added()):
-				(bursts.get_components());
+	const vector< vector<double> >& components = (update)?(spikes.get_added()):
+				(spikes.get_components());
 
 	// Set the background level
 	if(!update)
@@ -125,7 +125,7 @@ void MyModel::fromPrior()
 {
 	background = tan(M_PI*(0.97*randomU() - 0.485));
 	background = exp(background);
-	bursts.fromPrior();
+	spikes.fromPrior();
 
 	noise_sigma = exp(log(1E-3) + log(1E3)*randomU());
 	noise_L = exp(log(1E-2*Data::get_instance().get_t_range())
@@ -154,8 +154,8 @@ double MyModel::perturb()
 	}
 	else if(randomU() <= 0.7)
 	{
-		logH += bursts.perturb();
-//		bursts.consolidate_diff();
+		logH += spikes.perturb();
+//		spikes.consolidate_diff();
 		calculate_mu();
 	}
 	else if(randomU() <= 0.5)
@@ -201,7 +201,7 @@ double MyModel::logLikelihood() const
 void MyModel::print(std::ostream& out) const
 {
 	out<<background<<' ';
-	bursts.print(out);
+	spikes.print(out);
 
 	for(size_t i=0; i<mu.size(); i++)
 		out<<mu[i]<<' ';
